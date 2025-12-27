@@ -78,7 +78,22 @@ function setupDashboard(user) {
     loadStats();
     loadUsers();
     loadPatchHistory();
+    loadSupportRequests();
+    updateAdminStatus(true);
 }
+
+// Track Admin Online Status
+function updateAdminStatus(online) {
+    const user = auth.currentUser;
+    if (user && ALLOWED_ADMINS.includes(user.email)) {
+        db.collection('users').doc(user.uid).update({
+            is_online: online,
+            last_online: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+}
+
+window.onbeforeunload = () => updateAdminStatus(false);
 
 // Targeting Logic
 const targetType = document.getElementById('patch-target-type');
@@ -150,13 +165,18 @@ function createUserCard(user) {
             <div class="m-user-logo" style="background: ${logoColor}20; border: 2px solid ${logoColor}">
                 <i class="fas fa-user-graduate" style="color: ${logoColor}"></i>
             </div>
-            <div class="m-user-info">
-                <h4>${user.name || 'Student User'}</h4>
-                <p>${user.email || 'Email Protected'}</p>
-                <div class="tag-badge-small" style="background: ${getTagColor(user.tag)}">
-                    ${user.tag || 'Student'}
+                <div class="m-user-info">
+                    <h4>${user.name || 'Student User'}</h4>
+                    <p>${user.email || 'Email Protected'}</p>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-top: 5px;">
+                        <div class="tag-badge-small" style="background: ${getTagColor(user.tag)}">
+                            ${user.tag || 'Student'}
+                        </div>
+                        <span class="status-indicator ${user.is_online ? 'online' : ''}" style="font-size: 0.65rem;">
+                            ${user.is_online ? 'Online' : 'Offline'}
+                        </span>
+                    </div>
                 </div>
-            </div>
         </div>
         <div class="card-stats">
             <div class="c-stat">
@@ -365,6 +385,118 @@ window.deletePatch = async (id, both) => {
         }
     }
 };
+
+// Help Tab / Support System
+let activeChatRequestId = null;
+let chatUnsubscribe = null;
+
+function loadSupportRequests() {
+    const requestList = document.getElementById('request-list');
+    db.collection('support_requests').orderBy('created_at', 'desc').onSnapshot(snapshot => {
+        requestList.innerHTML = '';
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const item = document.createElement('div');
+            item.className = `request-item ${activeChatRequestId === doc.id ? 'active' : ''}`;
+            item.onclick = () => openChat(doc.id, data);
+
+            item.innerHTML = `
+                <div class="request-name">${data.name}</div>
+                <p style="font-size: 0.75rem; color: var(--text-dim); margin: 5px 0;">${data.message.substring(0, 40)}...</p>
+                <div class="request-meta">
+                    <span class="request-status status-${data.status}">${data.status}</span>
+                    <div class="request-actions">
+                        ${data.status === 'pending' ? `
+                            <button onclick="updateRequestStatus(event, '${doc.id}', 'approved')" style="color: var(--success); border: none; background: none; cursor: pointer; padding: 0 5px;"><i class="fas fa-check-circle"></i></button>
+                            <button onclick="updateRequestStatus(event, '${doc.id}', 'rejected')" style="color: var(--danger); border: none; background: none; cursor: pointer; padding: 0 5px;"><i class="fas fa-times-circle"></i></button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            requestList.appendChild(item);
+        });
+    });
+}
+
+window.updateRequestStatus = async (e, id, status) => {
+    e.stopPropagation();
+    try {
+        await db.collection('support_requests').doc(id).update({ status: status });
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
+};
+
+function openChat(requestId, requestData) {
+    if (requestData.status !== 'approved') {
+        alert("Please approve the request first to start chatting.");
+        return;
+    }
+
+    activeChatRequestId = requestId;
+    document.getElementById('chat-header').classList.remove('hidden');
+    document.getElementById('chat-input-area').classList.remove('hidden');
+    document.getElementById('chat-user-name').innerText = requestData.name;
+
+    // Highlight active item
+    document.querySelectorAll('.request-item').forEach(i => i.classList.remove('active'));
+    loadSupportRequests(); // Re-render to show active state
+
+    // Listen for user online status
+    db.collection('users').doc(requestData.uid).onSnapshot(doc => {
+        if (doc.exists) {
+            const online = doc.data().is_online;
+            const statusEl = document.getElementById('chat-user-status');
+            statusEl.innerText = online ? 'Online' : 'Offline';
+            statusEl.className = `status-indicator ${online ? 'online' : ''}`;
+        }
+    });
+
+    loadMessages(requestId);
+}
+
+function loadMessages(requestId) {
+    if (chatUnsubscribe) chatUnsubscribe();
+
+    const messagesContainer = document.getElementById('chat-messages');
+    chatUnsubscribe = db.collection('chats')
+        .where('requestId', '==', requestId)
+        .orderBy('created_at', 'asc')
+        .onSnapshot(snapshot => {
+            messagesContainer.innerHTML = '';
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble ${msg.is_admin ? 'message-admin' : 'message-user'}`;
+                bubble.innerText = msg.message;
+                messagesContainer.appendChild(bubble);
+            });
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+}
+
+document.getElementById('chat-send-btn').onclick = sendMessage;
+document.getElementById('chat-input').onkeypress = (e) => {
+    if (e.key === 'Enter') sendMessage();
+};
+
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg || !activeChatRequestId) return;
+
+    input.value = '';
+    const user = auth.currentUser;
+
+    await db.collection('chats').add({
+        requestId: activeChatRequestId,
+        senderId: user.uid,
+        senderName: "Rijan (Admin)",
+        message: msg,
+        is_admin: true,
+        created_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+}
 
 // Bottom Nav Navigation
 bottomNavItems.forEach(item => {

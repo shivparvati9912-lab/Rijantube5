@@ -172,6 +172,35 @@
                 </div>
             </section>
 
+            <section id="help-tab" class="tab-content hidden">
+                <div class="messenger-container">
+                    <div class="messenger-sidebar">
+                        <h3>Support Requests</h3>
+                        <div id="request-list" class="request-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    <div class="messenger-main">
+                        <div id="chat-header" class="chat-header hidden">
+                            <div class="chat-user-info">
+                                <h4 id="chat-user-name">User Name</h4>
+                                <span id="chat-user-status" class="status-indicator">Offline</span>
+                            </div>
+                        </div>
+                        <div id="chat-messages" class="chat-messages">
+                            <div class="empty-chat">
+                                <i class="fas fa-comments"></i>
+                                <p>Select a request to start chatting</p>
+                            </div>
+                        </div>
+                        <div id="chat-input-area" class="chat-input-area hidden">
+                            <input type="text" id="chat-input" placeholder="Type a message...">
+                            <button id="chat-send-btn"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section id="settings-tab" class="tab-content hidden">
                 <div class="empty-state">
                     <i class="fas fa-cog"></i>
