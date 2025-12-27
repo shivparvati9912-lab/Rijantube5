@@ -83,10 +83,12 @@
 
             <!-- Leaderboard Tab -->
             <section id="leaderboard-tab" class="tab-content hidden">
-                <div class="empty-state">
-                    <i class="fas fa-trophy"></i>
-                    <h3>Leaderboard Management</h3>
-                    <p>Live rankings and score adjustments.</p>
+                <div class="hero-card" style="margin-bottom: 20px;">
+                    <h3>Live Global Rankings</h3>
+                    <p>Top students based on Level and Experience points.</p>
+                </div>
+                <div id="leaderboard-container" class="cards-list">
+                    <!-- JS will populate leaderboard here -->
                 </div>
             </section>
 
@@ -155,12 +157,36 @@
                 </div>
             </section>
 
-            <!-- Placeholder Tabs -->
+            <!-- Analytics Tab -->
             <section id="analytics-tab" class="tab-content hidden">
-                <div class="empty-state">
-                    <i class="fas fa-chart-bar"></i>
-                    <h3>Advanced Analytics</h3>
-                    <p>Coming soon: Track user growth and daily active usage.</p>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="stat-card">
+                        <i class="fas fa-users-cog"></i>
+                        <h3 id="ana-total-users">0</h3>
+                        <p>Total Users</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-user-shield"></i>
+                        <h3 id="ana-admins">2</h3>
+                        <p>Admins</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-ban"></i>
+                        <h3 id="ana-banned">0</h3>
+                        <p>Banned Accounts</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-signal"></i>
+                        <h3 id="ana-online">0</h3>
+                        <p>Online Now</p>
+                    </div>
+                </div>
+                <div class="p-form-card" style="margin-top: 20px;">
+                    <h3>Security Overview</h3>
+                    <div id="compromised-list" class="cards-list">
+                        <!-- Compromised users will show here -->
+                        <p style="text-align: center; color: var(--text-dim);">No security threats detected.</p>
+                    </div>
                 </div>
             </section>
 

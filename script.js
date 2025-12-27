@@ -1,11 +1,13 @@
 // Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyADmwz_xMK0QSnlFYNV3qNblsC-DGCuiyc",
+    apiKey: "AIzaSyCv-3XGV3nimwCNSMPKHBOrCJdDeaTR3AI",
     authDomain: "rijatube-eddff.firebaseapp.com",
+    databaseURL: "https://rijatube-eddff-default-rtdb.firebaseio.com",
     projectId: "rijatube-eddff",
     storageBucket: "rijatube-eddff.firebasestorage.app",
     messagingSenderId: "60460948404",
-    appId: "1:60460948404:web:8ce88fe98c1099f77cf0e1"
+    appId: "1:60460948404:web:4e1bae18253109ff7cf0e1",
+    measurementId: "G-C6JRPNKR1V"
 };
 
 // Initialize Firebase
@@ -79,6 +81,8 @@ function setupDashboard(user) {
     loadUsers();
     loadPatchHistory();
     loadSupportRequests();
+    loadLeaderboard();
+    loadAnalytics();
     updateAdminStatus(true);
 }
 
@@ -111,8 +115,22 @@ function loadStats() {
         // Filter out admins from stats
         const activeUsers = users.filter(u => !ALLOWED_ADMINS.includes(u.email));
 
-        document.getElementById('total-users').innerText = activeUsers.length;
-        document.getElementById('total-banned').innerText = activeUsers.filter(u => u.is_banned === true).length;
+        const total = activeUsers.length;
+        const banned = activeUsers.filter(u => u.is_banned === true).length;
+        const online = activeUsers.filter(u => u.is_online === true).length;
+
+        // Front Page Stats
+        document.getElementById('total-users').innerText = total;
+        document.getElementById('total-banned').innerText = banned;
+
+        // Analytics Tab Stats
+        const anaTotal = document.getElementById('ana-total-users');
+        const anaBanned = document.getElementById('ana-banned');
+        const anaOnline = document.getElementById('ana-online');
+
+        if (anaTotal) anaTotal.innerText = total;
+        if (anaBanned) anaBanned.innerText = banned;
+        if (anaOnline) anaOnline.innerText = online;
     });
 }
 
@@ -496,6 +514,72 @@ async function sendMessage() {
         is_admin: true,
         created_at: firebase.firestore.FieldValue.serverTimestamp()
     });
+}
+
+// Leaderboard Logic
+function loadLeaderboard() {
+    const container = document.getElementById('leaderboard-container');
+    db.collection('users')
+        .orderBy('level', 'desc')
+        .orderBy('exp', 'desc')
+        .limit(20)
+        .onSnapshot(snapshot => {
+            container.innerHTML = '';
+            let rank = 1;
+            snapshot.forEach(doc => {
+                const user = doc.data();
+                const isAdmin = ALLOWED_ADMINS.includes(user.email);
+
+                const card = document.createElement('div');
+                card.className = 'user-card';
+                card.style.borderLeft = rank <= 3 ? `4px solid var(--gold)` : 'none';
+
+                card.innerHTML = `
+                    <div class="user-main">
+                        <div class="rank-number" style="font-weight: 800; font-size: 1.2rem; color: var(--primary); margin-right: 15px;">
+                            #${rank}
+                        </div>
+                        <div class="m-user-info">
+                            <h4>${user.name || 'Student User'} ${isAdmin ? '<i class="fas fa-verified" style="color: #2196F3; font-size: 0.8rem;"></i>' : ''}</h4>
+                            <p>Level ${user.level || 0} • ${user.exp || 0} EXP</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+                rank++;
+            });
+        });
+}
+
+function loadAnalytics() {
+    const compList = document.getElementById('compromised-list');
+    db.collection('users')
+        .where('is_compromised', '==', true)
+        .onSnapshot(snapshot => {
+            compList.innerHTML = '';
+            if (snapshot.empty) {
+                compList.innerHTML = '<p style="text-align: center; color: var(--text-dim); padding: 20px;">No security threats detected.</p>';
+                return;
+            }
+            snapshot.forEach(doc => {
+                const user = doc.data();
+                const card = document.createElement('div');
+                card.className = 'history-item';
+                card.style.borderLeft = '4px solid var(--danger)';
+                card.innerHTML = `
+                    <div class="history-header">
+                        <span class="status-badge" style="background: var(--danger); color: white;">COMPROMISED</span>
+                        <span style="font-size: 0.8rem; font-weight: bold;">${user.name}</span>
+                    </div>
+                    <p class="history-msg">UID: ${user.uid_number} | Package: ${user.security_details?.current_package || 'Unknown'}</p>
+                    <div class="history-meta">
+                        <span>Rooted: ${user.security_details?.rooted ? 'YES' : 'NO'}</span>
+                        <span>Emulator: ${user.security_details?.emulator ? 'YES' : 'NO'}</span>
+                    </div>
+                `;
+                compList.appendChild(card);
+            });
+        });
 }
 
 // Bottom Nav Navigation
