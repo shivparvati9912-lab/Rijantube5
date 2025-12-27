@@ -136,7 +136,7 @@ function loadStats() {
 
 // User List with Real-time Updates
 function loadUsers() {
-    db.collection('users').orderBy('created_at', 'desc').onSnapshot(snapshot => {
+    db.collection('users').onSnapshot(snapshot => {
         allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderUsers(allUsers);
     }, error => {
@@ -410,7 +410,7 @@ let chatUnsubscribe = null;
 
 function loadSupportRequests() {
     const requestList = document.getElementById('request-list');
-    db.collection('support_requests').orderBy('created_at', 'desc').onSnapshot(snapshot => {
+    db.collection('support_requests').onSnapshot(snapshot => {
         requestList.innerHTML = '';
         snapshot.forEach(doc => {
             const data = doc.data();
