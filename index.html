@@ -81,12 +81,87 @@
                 </div>
             </section>
 
-            <!-- Leaderboard Tab (Mock/Coming Soon) -->
+            <!-- Leaderboard Tab -->
             <section id="leaderboard-tab" class="tab-content hidden">
                 <div class="empty-state">
                     <i class="fas fa-trophy"></i>
                     <h3>Leaderboard Management</h3>
-                    <p>This feature is coming soon.</p>
+                    <p>Live rankings and score adjustments.</p>
+                </div>
+            </section>
+
+            <!-- Patch Tab -->
+            <section id="patch-tab" class="tab-content hidden">
+                <div class="patch-form">
+                    <div class="hero-card" style="margin-bottom: 20px;">
+                        <h3>Broadcasting System</h3>
+                        <p>Send instant notifications to all active users in the Flutter App.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Message Content</label>
+                        <textarea id="patch-message" placeholder="Type your announcement here..."></textarea>
+                    </div>
+
+                    <div class="stats-grid-mobile">
+                        <div class="form-group">
+                            <label>Tag / Type</label>
+                            <select id="patch-tag">
+                                <option value="optional">Optional (Toast)</option>
+                                <option value="required">Required (Blocking)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Duration</label>
+                            <select id="patch-duration-type">
+                                <option value="custom">Custom Time</option>
+                                <option value="permanent">Permanent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="duration-input-group" class="form-group">
+                        <label>Hours until Expiry</label>
+                        <input type="number" id="patch-hours" value="24" min="1">
+                    </div>
+
+                    <button id="send-patch-btn" class="p-send-btn">
+                        <i class="fas fa-paper-plane"></i> Send Patch Now
+                    </button>
+                    <div id="patch-status" class="error-msg" style="text-align: center;"></div>
+                </div>
+            </section>
+
+            <!-- Placeholder Tabs -->
+            <section id="analytics-tab" class="tab-content hidden">
+                <div class="empty-state">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>Advanced Analytics</h3>
+                    <p>Coming soon: Track user growth and daily active usage.</p>
+                </div>
+            </section>
+
+            <section id="logs-tab" class="tab-content hidden">
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h3>System Logs</h3>
+                    <p>Coming soon: Detailed activity and error logs.</p>
+                </div>
+            </section>
+
+            <section id="settings-tab" class="tab-content hidden">
+                <div class="empty-state">
+                    <i class="fas fa-cog"></i>
+                    <h3>App Settings</h3>
+                    <p>Coming soon: Dynamic configuration for the Flutter app.</p>
+                </div>
+            </section>
+
+            <section id="support-tab" class="tab-content hidden">
+                <div class="empty-state">
+                    <i class="fas fa-headset"></i>
+                    <h3>Help & Support</h3>
+                    <p>Coming soon: Directly contact terminal users.</p>
                 </div>
             </section>
         </main>
@@ -94,16 +169,36 @@
         <!-- Bottom Navigation Bar -->
         <nav class="bottom-nav">
             <div class="nav-item active" data-tab="overview">
-                <i class="fas fa-chart-line"></i>
+                <i class="fas fa-home"></i>
                 <span>Home</span>
             </div>
             <div class="nav-item" data-tab="users">
-                <i class="fas fa-users-cog"></i>
+                <i class="fas fa-users"></i>
                 <span>Users</span>
+            </div>
+            <div class="nav-item" data-tab="patch">
+                <i class="fas fa-bolt"></i>
+                <span>Patch</span>
             </div>
             <div class="nav-item" data-tab="leaderboard">
                 <i class="fas fa-crown"></i>
                 <span>Rank</span>
+            </div>
+            <div class="nav-item" data-tab="analytics">
+                <i class="fas fa-chart-pie"></i>
+                <span>Data</span>
+            </div>
+            <div class="nav-item" data-tab="logs">
+                <i class="fas fa-terminal"></i>
+                <span>Logs</span>
+            </div>
+            <div class="nav-item" data-tab="settings">
+                <i class="fas fa-sliders-h"></i>
+                <span>Set</span>
+            </div>
+            <div class="nav-item" data-tab="support">
+                <i class="fas fa-shield-alt"></i>
+                <span>Help</span>
             </div>
         </nav>
     </div>

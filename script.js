@@ -83,8 +83,11 @@ function setupDashboard(user) {
 function loadStats() {
     db.collection('users').onSnapshot(snapshot => {
         const users = snapshot.docs.map(doc => doc.data());
-        document.getElementById('total-users').innerText = users.length;
-        document.getElementById('total-banned').innerText = users.filter(u => u.is_banned === true).length;
+        // Filter out admin from stats
+        const activeUsers = users.filter(u => u.email !== ALLOWED_EMAIL);
+
+        document.getElementById('total-users').innerText = activeUsers.length;
+        document.getElementById('total-banned').innerText = activeUsers.filter(u => u.is_banned === true).length;
     });
 }
 
@@ -100,12 +103,15 @@ function loadUsers() {
 
 function renderUsers(users) {
     userCardsContainer.innerHTML = '';
-    if (users.length === 0) {
+    // Filter out the admin email as requested
+    const filteredUsers = users.filter(u => u.email !== ALLOWED_EMAIL);
+
+    if (filteredUsers.length === 0) {
         userCardsContainer.innerHTML = '<div class="empty-state"><p>No users found.</p></div>';
         return;
     }
 
-    users.forEach(user => {
+    filteredUsers.forEach(user => {
         const card = createUserCard(user);
         userCardsContainer.appendChild(card);
     });
@@ -128,6 +134,9 @@ function createUserCard(user) {
             <div class="m-user-info">
                 <h4>${user.name || 'Student User'}</h4>
                 <p>${user.email || 'Email Protected'}</p>
+                <div class="tag-badge-small" style="background: ${getTagColor(user.tag)}">
+                    ${user.tag || 'Student'}
+                </div>
             </div>
         </div>
         <div class="card-stats">
@@ -145,12 +154,24 @@ function createUserCard(user) {
             </div>
         </div>
         <div class="card-actions">
-            <button class="m-btn ${isBanned ? 'm-unban-btn' : 'm-ban-btn'}" onclick="toggleBan('${user.id}', ${isBanned})">
-                ${isBanned ? '<i class="fas fa-user-check"></i> Unban' : '<i class="fas fa-user-slash"></i> Ban User'}
+            <button class="m-btn m-ban-btn" style="background: ${isBanned ? 'var(--success)' : 'var(--danger)'}20; color: ${isBanned ? 'var(--success)' : 'var(--danger)'}; border-color: ${isBanned ? 'var(--success)' : 'var(--danger)'}40;" onclick="toggleBan('${user.id}', ${isBanned}, '${user.email}')">
+                <i class="fas ${isBanned ? 'fa-user-check' : 'fa-user-slash'}"></i> ${isBanned ? 'Unban' : 'Ban'}
+            </button>
+            <button class="m-btn tag-btn" onclick="manageTag('${user.id}', '${user.tag || 'Student'}')">
+                <i class="fas fa-tags"></i> Tag
             </button>
         </div>
     `;
     return div;
+}
+
+function getTagColor(tag) {
+    switch (tag) {
+        case 'Golden VIP': return '#FFD700';
+        case 'VIP': return '#FF4081';
+        case 'Student': return '#2196F3';
+        default: return 'var(--text-dim)';
+    }
 }
 
 // Search Logic
@@ -165,7 +186,13 @@ userSearchInput.oninput = (e) => {
 };
 
 // Toggle Ban Status
-window.toggleBan = async (id, currentStatus) => {
+window.toggleBan = async (id, currentStatus, email) => {
+    // Security check: Admin cannot be banned
+    if (email === ALLOWED_EMAIL && !currentStatus) {
+        alert("Security Alert: The administrator account cannot be banned.");
+        return;
+    }
+
     const action = currentStatus ? "unban" : "ban";
     if (confirm(`Are you sure you want to ${action} this user?`)) {
         try {
@@ -175,6 +202,76 @@ window.toggleBan = async (id, currentStatus) => {
         } catch (e) {
             alert("Error updating status: " + e.message);
         }
+    }
+};
+
+// Manage User Tags
+window.manageTag = async (id, currentTag) => {
+    const tags = ['Student', 'VIP', 'Golden VIP'];
+    const nextIndex = (tags.indexOf(currentTag) + 1) % tags.length;
+    const newTag = tags[nextIndex];
+
+    try {
+        await db.collection('users').doc(id).update({
+            tag: newTag
+        });
+    } catch (e) {
+        alert("Error updating tag: " + e.message);
+    }
+}
+
+// Patch System Logic
+const patchDurationType = document.getElementById('patch-duration-type');
+const durationInputGroup = document.getElementById('duration-input-group');
+const sendPatchBtn = document.getElementById('send-patch-btn');
+
+patchDurationType.onchange = () => {
+    durationInputGroup.style.display = patchDurationType.value === 'custom' ? 'flex' : 'none';
+};
+
+sendPatchBtn.onclick = async () => {
+    const message = document.getElementById('patch-message').value.trim();
+    const tag = document.getElementById('patch-tag').value;
+    const durationType = patchDurationType.value;
+    const hours = parseInt(document.getElementById('patch-hours').value);
+    const statusDiv = document.getElementById('patch-status');
+
+    if (!message) {
+        statusDiv.innerText = "Error: Message cannot be empty.";
+        return;
+    }
+
+    sendPatchBtn.disabled = true;
+    sendPatchBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
+
+    try {
+        const now = firebase.firestore.Timestamp.now();
+        let expiry = null;
+        if (durationType === 'custom') {
+            expiry = firebase.firestore.Timestamp.fromMillis(now.toMillis() + (hours * 3600000));
+        }
+
+        await db.collection('patches').add({
+            message: message,
+            tag: tag, // 'optional' (toast) or 'required' (blocking)
+            expiry: expiry,
+            createdAt: now,
+            active: true
+        });
+
+        statusDiv.style.color = 'var(--success)';
+        statusDiv.innerText = "Patch broadcasted successfully!";
+        document.getElementById('patch-message').value = '';
+
+        setTimeout(() => {
+            statusDiv.innerText = '';
+        }, 3000);
+    } catch (e) {
+        statusDiv.style.color = 'var(--danger)';
+        statusDiv.innerText = "Failed to send patch: " + e.message;
+    } finally {
+        sendPatchBtn.disabled = false;
+        sendPatchBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Patch Now';
     }
 };
 
