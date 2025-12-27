@@ -487,3 +487,78 @@ body {
     color: var(--danger);
     border: 1px solid var(--danger);
 }
+
+/* Patch History Styles */
+.history-item {
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.history-msg {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: white;
+}
+
+.history-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.meta-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-dim);
+}
+
+.history-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.h-del-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.h-del-web {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-dim);
+    border-color: var(--glass-border);
+}
+
+.h-del-both {
+    background: rgba(255, 82, 82, 0.1);
+    color: var(--danger);
+    border-color: rgba(255, 82, 82, 0.3);
+}
+
+.h-del-btn:active {
+    transform: scale(0.95);
+}
+
+#target-user-group select {
+    width: 100%;
+}
