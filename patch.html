@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Patch - Rijantube Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="admin-dashboard" class="dashboard-mobile">
+        <header class="app-bar">
+            <div class="app-info">
+                <img src="app.png" alt="Logo" class="mini-logo">
+                <span id="tab-title">Patch</span>
+            </div>
+            <button id="logout-btn" class="icon-btn" onclick="location.href='index.html'">
+                <i class="fas fa-home"></i>
+            </button>
+        </header>
+
+        <main class="mobile-content">
+            <div class="patch-form">
+                <div class="hero-card" style="margin-bottom: 20px;">
+                    <h3>Broadcasting System</h3>
+                    <p>Send instant notifications to all active users in the Flutter App.</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Message Content</label>
+                    <textarea id="patch-message" placeholder="Type your announcement here..."></textarea>
+                </div>
+
+                <div class="stats-grid-mobile">
+                    <div class="form-group">
+                        <label>Target Audience</label>
+                        <select id="patch-target-type">
+                            <option value="all">All Users</option>
+                            <option value="specific">Specific User</option>
+                        </select>
+                    </div>
+                    <div id="target-user-group" class="form-group" style="display: none;">
+                        <label>Select User</label>
+                        <select id="patch-target-user">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="stats-grid-mobile">
+                    <div class="form-group">
+                        <label>Tag / Type</label>
+                        <select id="patch-tag">
+                            <option value="optional">Optional (Toast)</option>
+                            <option value="required">Required (Blocking)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Duration</label>
+                        <select id="patch-duration-type">
+                            <option value="custom">Custom Time</option>
+                            <option value="permanent">Permanent</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="duration-input-group" class="form-group">
+                    <label>Hours until Expiry</label>
+                    <input type="number" id="patch-hours" value="24" min="1">
+                </div>
+
+                <button id="send-patch-btn" class="p-send-btn">
+                    <i class="fas fa-paper-plane"></i> Send Patch Now
+                </button>
+                <div id="patch-status" class="error-msg" style="text-align: center;"></div>
+
+                <div class="history-section" style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--text-dim);">Patch History</h3>
+                    <div id="patch-history-container" class="cards-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="users.html" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="patch.html" class="nav-item active">
+                <i class="fas fa-bolt"></i>
+                <span>Patch</span>
+            </a>
+            <a href="leaderboard.html" class="nav-item">
+                <i class="fas fa-crown"></i>
+                <span>Rank</span>
+            </a>
+            <a href="analytics.html" class="nav-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>Data</span>
+            </a>
+            <a href="logs.html" class="nav-item">
+                <i class="fas fa-terminal"></i>
+                <span>Logs</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fas fa-sliders-h"></i>
+                <span>Set</span>
+            </a>
+            <a href="support.html" class="nav-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>Support</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
