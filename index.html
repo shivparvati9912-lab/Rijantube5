@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rijantube Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="overlay">
+        <div class="login-card">
+            <img src="app.png" alt="Rijantube Logo" class="login-logo">
+            <h1>Admin Login</h1>
+            <p>Access the Rijantube Management Portal</p>
+            <button id="google-login-btn" class="google-btn">
+                <i class="fab fa-google"></i> Sign in with Google
+            </button>
+            <div id="login-error" class="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="admin-dashboard" class="dashboard-container hidden">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <img src="app.png" alt="Logo" class="nav-logo">
+                <span class="brand-name">Rijantube</span>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-tab="overview">
+                    <i class="fas fa-chart-pie"></i> <span>Overview</span>
+                </li>
+                <li data-tab="users">
+                    <i class="fas fa-users"></i> <span>User Management</span>
+                </li>
+                <li data-tab=" leaderboard">
+                    <i class="fas fa-trophy"></i> <span>Leaderboard</span>
+                </li>
+                <li data-tab="settings">
+                    <i class="fas fa-cog"></i> <span>Settings</span>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="admin-info">
+                    <img id="admin-photo" src="" alt="" class="avatar hidden">
+                    <div class="admin-text">
+                        <p id="admin-name">Admin Name</p>
+                        <p id="admin-email">email@example.com</p>
+                    </div>
+                </div>
+                <button id="logout-btn" class="logout-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="content">
+            <header class="top-bar">
+                <h2 id="tab-title">Overview</h2>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search data...">
+                </div>
+            </header>
+
+            <!-- Overview Tab -->
+            <section id="overview-tab" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-user-friends"></i>
+                        <div class="stat-info">
+                            <h3>Total Users</h3>
+                            <p id="total-users">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-user-slash"></i>
+                        <div class="stat-info">
+                            <h3>Banned Users</h3>
+                            <p id="total-banned">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clock"></i>
+                        <div class="stat-info">
+                            <h3>Active Now</h3>
+                            <p id="active-users">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="charts-row">
+                    <div class="chart-container glass">
+                        <h3>User Growth (Mock)</h3>
+                        <div class="placeholder-chart">Chart Area</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Tab -->
+            <section id="users-tab" class="tab-content hidden">
+                <div class="table-container glass">
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th>Logo</th>
+                                <th>Name / Email</th>
+                                <th>UID Number</th>
+                                <th>Level/EXP</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-list-body">
+                            <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
