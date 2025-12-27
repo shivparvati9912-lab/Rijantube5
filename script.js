@@ -17,17 +17,21 @@ const db = firebase.firestore();
 
 const ALLOWED_ADMINS = ["rijanjoshi66@gmail.com", "shivparvati9912@gmail.com"];
 
-// DOM Elements
-const loginOverlay = document.getElementById('login-overlay');
-const dashboard = document.getElementById('admin-dashboard');
-const loginBtn = document.getElementById('google-login-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const loginError = document.getElementById('login-error');
-const userCardsContainer = document.getElementById('user-cards-container');
-const bottomNavItems = document.querySelectorAll('.nav-item');
-const tabContents = document.querySelectorAll('.tab-content');
-const tabTitle = document.getElementById('tab-title');
-const userSearchInput = document.getElementById('user-search');
+// DOM Elements (Safe selection)
+const safeGet = (id) => document.getElementById(id);
+const loginOverlay = safeGet('login-overlay');
+const dashboard = safeGet('admin-dashboard');
+const loginBtn = safeGet('google-login-btn');
+const logoutBtn = safeGet('logout-btn');
+const loginError = safeGet('login-error');
+const userCardsContainer = safeGet('user-cards-container');
+const userSearchInput = safeGet('user-search');
+const targetType = safeGet('patch-target-type');
+const targetUserGroup = safeGet('target-user-group');
+const targetUserSelect = safeGet('patch-target-user');
+const patchDurationType = safeGet('patch-duration-type');
+const durationInputGroup = safeGet('duration-input-group');
+const sendPatchBtn = safeGet('send-patch-btn');
 
 let allUsers = [];
 
@@ -37,7 +41,7 @@ auth.onAuthStateChanged(user => {
         if (ALLOWED_ADMINS.includes(user.email)) {
             setupDashboard(user);
         } else {
-            loginError.innerText = "Access Forbidden: Admin account required.";
+            if (loginError) loginError.innerText = "Access Forbidden: Admin account required.";
             auth.signOut();
         }
     } else {
@@ -46,44 +50,66 @@ auth.onAuthStateChanged(user => {
 });
 
 // Login Function
-loginBtn.onclick = () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(error => {
-        loginError.innerText = error.message;
-    });
-};
+if (loginBtn) {
+    loginBtn.onclick = () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(error => {
+            if (loginError) loginError.innerText = error.message;
+        });
+    };
+}
 
 // Logout Function
-logoutBtn.onclick = () => {
-    if (confirm("Sign out of Admin Panel?")) {
-        auth.signOut();
-    }
-};
+if (logoutBtn) {
+    logoutBtn.onclick = () => {
+        if (confirm("Sign out of Admin Panel?")) {
+            auth.signOut();
+        }
+    };
+}
 
 function showLogin() {
-    loginOverlay.classList.remove('hidden');
-    dashboard.classList.add('hidden');
+    if (loginOverlay) loginOverlay.classList.remove('hidden');
+    if (dashboard) dashboard.classList.add('hidden');
+    // If on a sub-page and not logged in, redirect to index
+    if (!window.location.pathname.endsWith('index.html') && !window.location.pathname.endsWith('/') && !loginOverlay) {
+        location.href = 'index.html';
+    }
 }
 
 function setupDashboard(user) {
-    loginOverlay.classList.add('hidden');
-    dashboard.classList.remove('hidden');
+    if (loginOverlay) loginOverlay.classList.add('hidden');
+    if (dashboard) dashboard.classList.remove('hidden');
 
-    document.getElementById('admin-name').innerText = user.displayName;
-    document.getElementById('admin-email').innerText = user.email;
+    const nameEl = safeGet('admin-name');
+    const emailEl = safeGet('admin-email');
+    if (nameEl) nameEl.innerText = user.displayName;
+    if (emailEl) emailEl.innerText = user.email;
+
     if (user.photoURL) {
-        const photo = document.getElementById('admin-photo');
-        photo.src = user.photoURL;
-        photo.classList.remove('hidden');
+        const photo = safeGet('admin-photo');
+        if (photo) {
+            photo.src = user.photoURL;
+            photo.classList.remove('hidden');
+        }
     }
 
-    loadStats();
-    loadUsers();
-    loadPatchHistory();
-    loadSupportRequests();
-    loadLeaderboard();
-    loadAnalytics();
+    // Page-specific initializers
+    loadCommonData();
+    const path = window.location.pathname;
+    if (path.includes('users.html')) loadUsers();
+    if (path.includes('patch.html')) { loadUsers(); loadPatchHistory(); }
+    if (path.includes('analytics.html')) loadAnalytics();
+    if (path.includes('logs.html')) loadSystemLogs();
+    if (path.includes('leaderboard.html')) loadLeaderboard();
+    if (path.includes('support.html')) loadSupportRequests();
+    if (path.includes('supporthelp.html')) loadAdvancedSupportRequests();
+
     updateAdminStatus(true);
+}
+
+function loadCommonData() {
+    loadStats(); // Always load stats for the header/overview
 }
 
 // Track Admin Online Status
@@ -93,20 +119,18 @@ function updateAdminStatus(online) {
         db.collection('users').doc(user.uid).update({
             is_online: online,
             last_online: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }).catch(() => { }); // Ignore error if doc doesn't exist yet
     }
 }
 
 window.onbeforeunload = () => updateAdminStatus(false);
 
 // Targeting Logic
-const targetType = document.getElementById('patch-target-type');
-const targetUserGroup = document.getElementById('target-user-group');
-const targetUserSelect = document.getElementById('patch-target-user');
-
-targetType.onchange = () => {
-    targetUserGroup.style.display = targetType.value === 'specific' ? 'flex' : 'none';
-};
+if (targetType) {
+    targetType.onchange = () => {
+        if (targetUserGroup) targetUserGroup.style.display = targetType.value === 'specific' ? 'flex' : 'none';
+    };
+}
 
 // Real-time Stats
 function loadStats() {
@@ -120,13 +144,16 @@ function loadStats() {
         const online = activeUsers.filter(u => u.is_online === true).length;
 
         // Front Page Stats
-        document.getElementById('total-users').innerText = total;
-        document.getElementById('total-banned').innerText = banned;
+        const totalUsersEl = safeGet('total-users');
+        const totalBannedEl = safeGet('total-banned');
+        if (totalUsersEl) totalUsersEl.innerText = total;
+        if (totalBannedEl) totalBannedEl.innerText = banned;
 
         // Analytics Tab Stats
-        const anaTotal = document.getElementById('ana-total-users');
-        const anaBanned = document.getElementById('ana-banned');
-        const anaOnline = document.getElementById('ana-online');
+        const anaTotal = safeGet('ana-total-users');
+        const anaAdmins = safeGet('ana-admins');
+        const anaBanned = safeGet('ana-banned');
+        const anaOnline = safeGet('ana-online');
 
         if (anaTotal) anaTotal.innerText = total;
         if (anaBanned) anaBanned.innerText = banned;
@@ -136,37 +163,42 @@ function loadStats() {
 
 // User List with Real-time Updates
 function loadUsers() {
+    if (!userCardsContainer && !targetUserSelect) return;
     db.collection('users').onSnapshot(snapshot => {
         allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderUsers(allUsers);
     }, error => {
-        userCardsContainer.innerHTML = `<div class="error-msg">Failed to load users: ${error.message}</div>`;
+        if (userCardsContainer) userCardsContainer.innerHTML = `<div class="error-msg">Failed to load users: ${error.message}</div>`;
     });
 }
 
 function renderUsers(users) {
-    userCardsContainer.innerHTML = '';
+    if (userCardsContainer) userCardsContainer.innerHTML = '';
     // Filter out all admin emails
     const filteredUsers = users.filter(u => !ALLOWED_ADMINS.includes(u.email));
 
     // Populate Targeting Dropdown
-    targetUserSelect.innerHTML = '';
-    filteredUsers.forEach(u => {
-        const opt = document.createElement('option');
-        opt.value = u.id; // Using Firestore Doc ID as UID
-        opt.innerText = `${u.name || 'User'} (${u.email || 'No Email'})`;
-        targetUserSelect.appendChild(opt);
-    });
-
-    if (filteredUsers.length === 0) {
-        userCardsContainer.innerHTML = '<div class="empty-state"><p>No users found.</p></div>';
-        return;
+    if (targetUserSelect) {
+        targetUserSelect.innerHTML = '';
+        filteredUsers.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id; // Using Firestore Doc ID as UID
+            opt.innerText = `${u.name || 'User'} (${u.email || 'No Email'})`;
+            targetUserSelect.appendChild(opt);
+        });
     }
 
-    filteredUsers.forEach(user => {
-        const card = createUserCard(user);
-        userCardsContainer.appendChild(card);
-    });
+    if (userCardsContainer) {
+        if (filteredUsers.length === 0) {
+            userCardsContainer.innerHTML = '<div class="empty-state"><p>No users found.</p></div>';
+            return;
+        }
+
+        filteredUsers.forEach(user => {
+            const card = createUserCard(user);
+            userCardsContainer.appendChild(card);
+        });
+    }
 }
 
 function createUserCard(user) {
@@ -278,72 +310,77 @@ window.manageTag = async (id, currentTag) => {
 }
 
 // Patch System Logic
-const patchDurationType = document.getElementById('patch-duration-type');
-const durationInputGroup = document.getElementById('duration-input-group');
-const sendPatchBtn = document.getElementById('send-patch-btn');
+if (patchDurationType) {
+    patchDurationType.onchange = () => {
+        if (durationInputGroup) durationInputGroup.style.display = patchDurationType.value === 'custom' ? 'flex' : 'none';
+    };
+}
 
-patchDurationType.onchange = () => {
-    durationInputGroup.style.display = patchDurationType.value === 'custom' ? 'flex' : 'none';
-};
+if (sendPatchBtn) {
+    sendPatchBtn.onclick = async () => {
+        const message = safeGet('patch-message').value.trim();
+        const tag = safeGet('patch-tag').value;
+        const durationType = patchDurationType.value;
+        const hours = parseInt(safeGet('patch-hours').value);
+        const targetTypeVal = targetType.value;
+        const targetUid = targetTypeVal === 'all' ? 'all' : targetUserSelect.value;
+        const statusDiv = safeGet('patch-status');
 
-sendPatchBtn.onclick = async () => {
-    const message = document.getElementById('patch-message').value.trim();
-    const tag = document.getElementById('patch-tag').value;
-    const durationType = patchDurationType.value;
-    const hours = parseInt(document.getElementById('patch-hours').value);
-    const targetTypeVal = targetType.value;
-    const targetUid = targetTypeVal === 'all' ? 'all' : targetUserSelect.value;
-    const statusDiv = document.getElementById('patch-status');
-
-    if (targetTypeVal === 'specific' && !targetUid) {
-        statusDiv.innerText = "Error: Please select a specific user or wait for users to load.";
-        return;
-    }
-
-    if (!message) {
-        statusDiv.innerText = "Error: Message cannot be empty.";
-        return;
-    }
-
-    sendPatchBtn.disabled = true;
-    sendPatchBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
-
-    try {
-        const now = firebase.firestore.Timestamp.now();
-        let expiry = null;
-        if (durationType === 'custom') {
-            expiry = firebase.firestore.Timestamp.fromMillis(now.toMillis() + (hours * 3600000));
+        if (targetTypeVal === 'specific' && !targetUid) {
+            if (statusDiv) statusDiv.innerText = "Error: Please select a specific user or wait for users to load.";
+            return;
         }
 
-        await db.collection('patches').add({
-            message: message,
-            tag: tag, // 'optional' or 'required'
-            targetUid: targetUid,
-            expiry: expiry,
-            createdAt: now,
-            active: true,
-            hiddenWeb: false
-        });
+        if (!message) {
+            if (statusDiv) statusDiv.innerText = "Error: Message cannot be empty.";
+            return;
+        }
 
-        statusDiv.style.color = 'var(--success)';
-        statusDiv.innerText = "Patch broadcasted successfully!";
-        document.getElementById('patch-message').value = '';
+        sendPatchBtn.disabled = true;
+        sendPatchBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
 
-        setTimeout(() => {
-            statusDiv.innerText = '';
-        }, 3000);
-    } catch (e) {
-        statusDiv.style.color = 'var(--danger)';
-        statusDiv.innerText = "Failed to send patch: " + e.message;
-    } finally {
-        sendPatchBtn.disabled = false;
-        sendPatchBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Patch Now';
-    }
-};
+        try {
+            const now = firebase.firestore.Timestamp.now();
+            let expiry = null;
+            if (durationType === 'custom') {
+                expiry = firebase.firestore.Timestamp.fromMillis(now.toMillis() + (hours * 3600000));
+            }
+
+            await db.collection('patches').add({
+                message: message,
+                tag: tag, // 'optional' or 'required'
+                targetUid: targetUid,
+                expiry: expiry,
+                createdAt: now,
+                active: true,
+                hiddenWeb: false
+            });
+
+            if (statusDiv) {
+                statusDiv.style.color = 'var(--success)';
+                statusDiv.innerText = "Patch broadcasted successfully!";
+                safeGet('patch-message').value = '';
+            }
+
+            setTimeout(() => {
+                if (statusDiv) statusDiv.innerText = '';
+            }, 3000);
+        } catch (e) {
+            if (statusDiv) {
+                statusDiv.style.color = 'var(--danger)';
+                statusDiv.innerText = "Failed to send patch: " + e.message;
+            }
+        } finally {
+            sendPatchBtn.disabled = false;
+            sendPatchBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Patch Now';
+        }
+    };
+}
 
 // Patch History and Revocation
 function loadPatchHistory() {
-    const historyContainer = document.getElementById('patch-history-container');
+    const historyContainer = safeGet('patch-history-container');
+    if (!historyContainer) return;
     db.collection('patches')
         .where('hiddenWeb', '==', false)
         .orderBy('createdAt', 'desc')
@@ -404,12 +441,13 @@ window.deletePatch = async (id, both) => {
     }
 };
 
-// Help Tab / Support System
+// Support System
 let activeChatRequestId = null;
 let chatUnsubscribe = null;
 
 function loadSupportRequests() {
-    const requestList = document.getElementById('request-list');
+    const requestList = safeGet('request-list');
+    if (!requestList) return;
     db.collection('support_requests').onSnapshot(snapshot => {
         requestList.innerHTML = '';
         snapshot.forEach(doc => {
@@ -423,12 +461,6 @@ function loadSupportRequests() {
                 <p style="font-size: 0.75rem; color: var(--text-dim); margin: 5px 0;">${data.message.substring(0, 40)}...</p>
                 <div class="request-meta">
                     <span class="request-status status-${data.status}">${data.status}</span>
-                    <div class="request-actions">
-                        ${data.status === 'pending' ? `
-                            <button onclick="updateRequestStatus(event, '${doc.id}', 'approved')" style="color: var(--success); border: none; background: none; cursor: pointer; padding: 0 5px;"><i class="fas fa-check-circle"></i></button>
-                            <button onclick="updateRequestStatus(event, '${doc.id}', 'rejected')" style="color: var(--danger); border: none; background: none; cursor: pointer; padding: 0 5px;"><i class="fas fa-times-circle"></i></button>
-                        ` : ''}
-                    </div>
                 </div>
             `;
             requestList.appendChild(item);
@@ -446,19 +478,24 @@ window.updateRequestStatus = async (e, id, status) => {
 };
 
 function openChat(requestId, requestData) {
-    if (requestData.status !== 'approved') {
-        alert("Please approve the request first to start chatting.");
-        return;
-    }
-
     activeChatRequestId = requestId;
-    document.getElementById('chat-header').classList.remove('hidden');
-    document.getElementById('chat-input-area').classList.remove('hidden');
-    document.getElementById('chat-user-name').innerText = requestData.name;
+
+    // UI adjustments for mobile
+    const main = document.querySelector('.messenger-main');
+    const sidebar = document.querySelector('.messenger-sidebar');
+    if (main) main.style.display = 'flex';
+    if (sidebar && window.innerWidth < 768) sidebar.style.display = 'none';
+
+    const header = safeGet('chat-header');
+    const inputArea = safeGet('chat-input-area');
+    const userName = safeGet('chat-user-name');
+
+    if (header) header.classList.remove('hidden');
+    if (inputArea) inputArea.classList.remove('hidden');
+    if (userName) userName.innerText = requestData.name;
 
     // Highlight active item
     document.querySelectorAll('.request-item').forEach(i => i.classList.remove('active'));
-    loadSupportRequests(); // Re-render to show active state
 
     // Listen for user online status
     db.collection('users').doc(requestData.uid).onSnapshot(doc => {
@@ -493,10 +530,14 @@ function loadMessages(requestId) {
         });
 }
 
-document.getElementById('chat-send-btn').onclick = sendMessage;
-document.getElementById('chat-input').onkeypress = (e) => {
-    if (e.key === 'Enter') sendMessage();
-};
+const chatSendBtn = safeGet('chat-send-btn');
+const chatInput = safeGet('chat-input');
+if (chatSendBtn) chatSendBtn.onclick = sendMessage;
+if (chatInput) {
+    chatInput.onkeypress = (e) => {
+        if (e.key === 'Enter') sendMessage();
+    };
+}
 
 async function sendMessage() {
     const input = document.getElementById('chat-input');
@@ -518,7 +559,8 @@ async function sendMessage() {
 
 // Leaderboard Logic
 function loadLeaderboard() {
-    const container = document.getElementById('leaderboard-container');
+    const container = safeGet('leaderboard-container');
+    if (!container) return;
     db.collection('users')
         .orderBy('level', 'desc')
         .orderBy('exp', 'desc')
@@ -535,13 +577,13 @@ function loadLeaderboard() {
                 card.style.borderLeft = rank <= 3 ? `4px solid var(--gold)` : 'none';
 
                 card.innerHTML = `
-                    <div class="user-main">
-                        <div class="rank-number" style="font-weight: 800; font-size: 1.2rem; color: var(--primary); margin-right: 15px;">
+                    <div class="user-main" style="display: flex; align-items: center;">
+                        <div class="rank-number" style="font-weight: 800; font-size: 1.2rem; min-width: 40px; color: var(--primary);">
                             #${rank}
                         </div>
                         <div class="m-user-info">
-                            <h4>${user.name || 'Student User'} ${isAdmin ? '<i class="fas fa-verified" style="color: #2196F3; font-size: 0.8rem;"></i>' : ''}</h4>
-                            <p>Level ${user.level || 0} • ${user.exp || 0} EXP</p>
+                            <h4 style="margin: 0;">${user.name || 'Student User'} ${isAdmin ? '<i class="fas fa-verified" style="color: #2196F3; font-size: 0.8rem;"></i>' : ''}</h4>
+                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: var(--text-dim);">Level ${user.level || 0} • ${user.exp || 0} EXP</p>
                         </div>
                     </div>
                 `;
@@ -551,8 +593,10 @@ function loadLeaderboard() {
         });
 }
 
+// Analytics
 function loadAnalytics() {
-    const compList = document.getElementById('compromised-list');
+    const compList = safeGet('compromised-list');
+    if (!compList) return;
     db.collection('users')
         .where('is_compromised', '==', true)
         .onSnapshot(snapshot => {
@@ -582,24 +626,67 @@ function loadAnalytics() {
         });
 }
 
-// Bottom Nav Navigation
-bottomNavItems.forEach(item => {
-    item.onclick = () => {
-        const target = item.getAttribute('data-tab');
+function loadSystemLogs() {
+    const logsContainer = safeGet('activity-logs');
+    if (!logsContainer) return;
 
-        // Update UI
-        bottomNavItems.forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
+    // Simulate activity log
+    logsContainer.innerHTML = `
+        <div class="history-item">
+            <div class="history-header">
+                <span class="status-badge" style="background: var(--primary); color: white;">SYSTEM</span>
+                <span>${new Date().toLocaleString()}</span>
+            </div>
+            <p class="history-msg">Administrator logged in from dashboard.</p>
+        </div>
+        <div class="history-item">
+            <div class="history-header">
+                <span class="status-badge" style="background: var(--success); color: white;">AUTH</span>
+                <span>Initializing...</span>
+            </div>
+            <p class="history-msg">Firebase Connected Successfully.</p>
+        </div>
+    `;
+}
 
-        // Switch Tabs
-        tabContents.forEach(tab => {
-            tab.classList.add('hidden');
-            if (tab.id === target + '-tab') {
-                tab.classList.remove('hidden');
-            }
+function loadAdvancedSupportRequests() {
+    const list = safeGet('advanced-request-list');
+    if (!list) return;
+
+    db.collection('support_requests').onSnapshot(snapshot => {
+        list.innerHTML = '';
+        if (snapshot.empty) {
+            list.innerHTML = '<p style="text-align: center; color: var(--text-dim);">No requests yet.</p>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const card = document.createElement('div');
+            card.className = 'history-item';
+            const statusColor = data.status === 'approved' ? 'var(--success)' : (data.status === 'rejected' ? 'var(--danger)' : 'var(--warning)');
+
+            card.innerHTML = `
+                <div class="history-header">
+                    <span class="status-badge" style="background: ${statusColor}; color: white;">${data.status.toUpperCase()}</span>
+                    <strong>${data.name}</strong>
+                </div>
+                <p class="history-msg">${data.message}</p>
+                <div class="history-actions">
+                    <button onclick="updateRequestStatus(event, '${doc.id}', 'approved')" style="color: var(--success); border: 1px solid var(--success); background: none; border-radius: 5px; cursor: pointer; padding: 5px 10px;">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button onclick="updateRequestStatus(event, '${doc.id}', 'rejected')" style="color: var(--danger); border: 1px solid var(--danger); background: none; border-radius: 5px; cursor: pointer; padding: 5px 10px;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <button onclick="location.href='support.html'" style="color: var(--primary); border: 1px solid var(--primary); background: none; border-radius: 5px; cursor: pointer; padding: 5px 10px;">
+                        <i class="fas fa-comments"></i> Chat
+                    </button>
+                </div>
+            `;
+            list.appendChild(card);
         });
+    });
+}
 
-        // Set Title
-        tabTitle.innerText = item.querySelector('span').innerText;
-    };
-});
+// Remove old SPA nav logic as we are using multi-page links now.

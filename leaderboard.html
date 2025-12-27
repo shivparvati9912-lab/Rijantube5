@@ -4,72 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rijantube Admin Mobile</title>
+    <title>Rank - Rijantube Admin</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Login Overlay -->
-    <div id="login-overlay" class="overlay">
-        <div class="login-card">
-            <img src="app.png" alt="Rijantube Logo" class="login-logo">
-            <h1>Admin Panel</h1>
-            <p>Authorized access only</p>
-            <button id="google-login-btn" class="google-btn">
-                <i class="fab fa-google"></i> Sign in with Google
-            </button>
-            <div id="login-error" class="error-msg"></div>
-        </div>
-    </div>
-
-    <!-- Mobile Dashboard Wrapper -->
-    <div id="admin-dashboard" class="dashboard-mobile hidden">
-        <!-- Top App Bar -->
+    <div id="admin-dashboard" class="dashboard-mobile">
         <header class="app-bar">
             <div class="app-info">
                 <img src="app.png" alt="Logo" class="mini-logo">
-                <span id="tab-title">Overview</span>
+                <span id="tab-title">Global Rankings</span>
             </div>
-            <button id="logout-btn" class="icon-btn">
-                <i class="fas fa-sign-out-alt"></i>
+            <button id="logout-btn" class="icon-btn" onclick="location.href='index.html'">
+                <i class="fas fa-home"></i>
             </button>
         </header>
 
-        <!-- Dynamic Content Area -->
         <main class="mobile-content">
-            <!-- Overview Tab (Home) -->
-            <section id="overview-tab" class="tab-content active">
-                <div class="admin-profile-card">
-                    <img id="admin-photo" src="" alt="" class="admin-avatar hidden">
-                    <div class="admin-details">
-                        <h2 id="admin-name">Administrator</h2>
-                        <p id="admin-email">email@example.com</p>
-                    </div>
+            <div class="hero-card" style="margin-bottom: 20px;">
+                <h3>Live Global Rankings</h3>
+                <p>Top students based on Level and Experience points.</p>
+            </div>
+            <div id="leaderboard-container" class="cards-list">
+                <!-- JS will populate leaderboard here -->
+                <div class="loading-spinner">
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                    <p>Calculating ranks...</p>
                 </div>
-
-                <div class="stats-grid-mobile">
-                    <div class="m-stat-card">
-                        <span class="m-stat-label">Total Users</span>
-                        <span class="m-stat-value" id="total-users">0</span>
-                    </div>
-                    <div class="m-stat-card">
-                        <span class="m-stat-label">Banned</span>
-                        <span class="m-stat-value danger-text" id="total-banned">0</span>
-                    </div>
-                </div>
-
-                <div class="hero-card">
-                    <h3>App Management</h3>
-                    <p>Live monitoring of Rijantube ecosystem.</p>
-                </div>
-            </section>
+            </div>
         </main>
 
-        <!-- Bottom Navigation Bar -->
         <nav class="bottom-nav">
-            <a href="index.html" class="nav-item active">
+            <a href="index.html" class="nav-item">
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
@@ -81,7 +49,7 @@
                 <i class="fas fa-bolt"></i>
                 <span>Patch</span>
             </a>
-            <a href="leaderboard.html" class="nav-item">
+            <a href="leaderboard.html" class="nav-item active">
                 <i class="fas fa-crown"></i>
                 <span>Rank</span>
             </a>
@@ -104,7 +72,6 @@
         </nav>
     </div>
 
-    <!-- Firebase SDKs (Compat version for simplicity in index.html) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
