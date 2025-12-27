@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rijantube Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rijantube Admin Mobile</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <!-- Login Overlay -->
     <div id="login-overlay" class="overlay">
         <div class="login-card">
             <img src="app.png" alt="Rijantube Logo" class="login-logo">
-            <h1>Admin Login</h1>
-            <p>Access the Rijantube Management Portal</p>
+            <h1>Admin Panel</h1>
+            <p>Authorized access only</p>
             <button id="google-login-btn" class="google-btn">
                 <i class="fab fa-google"></i> Sign in with Google
             </button>
@@ -22,112 +24,95 @@
         </div>
     </div>
 
-    <!-- Main Dashboard -->
-    <div id="admin-dashboard" class="dashboard-container hidden">
-        <!-- Sidebar -->
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <img src="app.png" alt="Logo" class="nav-logo">
-                <span class="brand-name">Rijantube</span>
+    <!-- Mobile Dashboard Wrapper -->
+    <div id="admin-dashboard" class="dashboard-mobile hidden">
+        <!-- Top App Bar -->
+        <header class="app-bar">
+            <div class="app-info">
+                <img src="app.png" alt="Logo" class="mini-logo">
+                <span id="tab-title">Overview</span>
             </div>
-            <ul class="nav-links">
-                <li class="active" data-tab="overview">
-                    <i class="fas fa-chart-pie"></i> <span>Overview</span>
-                </li>
-                <li data-tab="users">
-                    <i class="fas fa-users"></i> <span>User Management</span>
-                </li>
-                <li data-tab=" leaderboard">
-                    <i class="fas fa-trophy"></i> <span>Leaderboard</span>
-                </li>
-                <li data-tab="settings">
-                    <i class="fas fa-cog"></i> <span>Settings</span>
-                </li>
-            </ul>
-            <div class="sidebar-footer">
-                <div class="admin-info">
-                    <img id="admin-photo" src="" alt="" class="avatar hidden">
-                    <div class="admin-text">
-                        <p id="admin-name">Admin Name</p>
+            <button id="logout-btn" class="icon-btn">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <main class="mobile-content">
+            <!-- Overview Tab -->
+            <section id="overview-tab" class="tab-content active">
+                <div class="admin-profile-card">
+                    <img id="admin-photo" src="" alt="" class="admin-avatar hidden">
+                    <div class="admin-details">
+                        <h2 id="admin-name">Administrator</h2>
                         <p id="admin-email">email@example.com</p>
                     </div>
                 </div>
-                <button id="logout-btn" class="logout-link">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </nav>
 
-        <!-- Main Content -->
-        <main class="content">
-            <header class="top-bar">
-                <h2 id="tab-title">Overview</h2>
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search data...">
-                </div>
-            </header>
-
-            <!-- Overview Tab -->
-            <section id="overview-tab" class="tab-content active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <i class="fas fa-user-friends"></i>
-                        <div class="stat-info">
-                            <h3>Total Users</h3>
-                            <p id="total-users">0</p>
-                        </div>
+                <div class="stats-grid-mobile">
+                    <div class="m-stat-card">
+                        <span class="m-stat-label">Total Users</span>
+                        <span class="m-stat-value" id="total-users">0</span>
                     </div>
-                    <div class="stat-card">
-                        <i class="fas fa-user-slash"></i>
-                        <div class="stat-info">
-                            <h3>Banned Users</h3>
-                            <p id="total-banned">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-clock"></i>
-                        <div class="stat-info">
-                            <h3>Active Now</h3>
-                            <p id="active-users">0</p>
-                        </div>
+                    <div class="m-stat-card">
+                        <span class="m-stat-label">Banned</span>
+                        <span class="m-stat-value danger-text" id="total-banned">0</span>
                     </div>
                 </div>
-                <div class="charts-row">
-                    <div class="chart-container glass">
-                        <h3>User Growth (Mock)</h3>
-                        <div class="placeholder-chart">Chart Area</div>
-                    </div>
+
+                <div class="hero-card">
+                    <h3>App Management</h3>
+                    <p>Live monitoring of Rijantube ecosystem.</p>
                 </div>
             </section>
 
             <!-- Users Tab -->
             <section id="users-tab" class="tab-content hidden">
-                <div class="table-container glass">
-                    <table id="users-table">
-                        <thead>
-                            <tr>
-                                <th>Logo</th>
-                                <th>Name / Email</th>
-                                <th>UID Number</th>
-                                <th>Level/EXP</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="user-list-body">
-                            <!-- JS will populate this -->
-                        </tbody>
-                    </table>
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="user-search" placeholder="Search by name or UID...">
+                </div>
+                <div id="user-cards-container" class="cards-list">
+                    <!-- JS will populate cards here -->
+                    <div class="loading-spinner">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        <p>Loading users...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Leaderboard Tab (Mock/Coming Soon) -->
+            <section id="leaderboard-tab" class="tab-content hidden">
+                <div class="empty-state">
+                    <i class="fas fa-trophy"></i>
+                    <h3>Leaderboard Management</h3>
+                    <p>This feature is coming soon.</p>
                 </div>
             </section>
         </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" data-tab="overview">
+                <i class="fas fa-chart-line"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" data-tab="users">
+                <i class="fas fa-users-cog"></i>
+                <span>Users</span>
+            </div>
+            <div class="nav-item" data-tab="leaderboard">
+                <i class="fas fa-crown"></i>
+                <span>Rank</span>
+            </div>
+        </nav>
     </div>
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (Compat version for simplicity in index.html) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>

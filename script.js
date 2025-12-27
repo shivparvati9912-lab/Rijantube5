@@ -5,7 +5,7 @@ const firebaseConfig = {
     projectId: "rijatube-eddff",
     storageBucket: "rijatube-eddff.firebasestorage.app",
     messagingSenderId: "60460948404",
-    appId: "1:60460948404:web:8ce88fe98c1099f77cf0e1" // Mocked based on android, common pattern
+    appId: "1:60460948404:web:8ce88fe98c1099f77cf0e1"
 };
 
 // Initialize Firebase
@@ -21,10 +21,13 @@ const dashboard = document.getElementById('admin-dashboard');
 const loginBtn = document.getElementById('google-login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const loginError = document.getElementById('login-error');
-const userListBody = document.getElementById('user-list-body');
-const sideLinks = document.querySelectorAll('.nav-links li');
+const userCardsContainer = document.getElementById('user-cards-container');
+const bottomNavItems = document.querySelectorAll('.nav-item');
 const tabContents = document.querySelectorAll('.tab-content');
 const tabTitle = document.getElementById('tab-title');
+const userSearchInput = document.getElementById('user-search');
+
+let allUsers = [];
 
 // Auth State Monitor
 auth.onAuthStateChanged(user => {
@@ -32,7 +35,7 @@ auth.onAuthStateChanged(user => {
         if (user.email === ALLOWED_EMAIL) {
             setupDashboard(user);
         } else {
-            loginError.innerText = "Access Denied: You are not an administrator.";
+            loginError.innerText = "Access Forbidden: Admin account required.";
             auth.signOut();
         }
     } else {
@@ -50,7 +53,9 @@ loginBtn.onclick = () => {
 
 // Logout Function
 logoutBtn.onclick = () => {
-    auth.signOut();
+    if (confirm("Sign out of Admin Panel?")) {
+        auth.signOut();
+    }
 };
 
 function showLogin() {
@@ -74,83 +79,123 @@ function setupDashboard(user) {
     loadUsers();
 }
 
-// Stats Loading
-async function loadStats() {
-    const snapshot = await db.collection('users').get();
-    const users = snapshot.docs.map(doc => doc.data());
-    
-    document.getElementById('total-users').innerText = users.length;
-    document.getElementById('total-banned').innerText = users.filter(u => u.is_banned === true).length;
-    document.getElementById('active-users').innerText = Math.floor(users.length * 0.4); // Mock active count
-}
-
-// User List Loading
-function loadUsers() {
-    db.collection('users').orderBy('created_at', 'desc').onSnapshot(snapshot => {
-        userListBody.innerHTML = '';
-        snapshot.forEach(doc => {
-            const user = doc.data();
-            const userId = doc.id;
-            const row = createUserRow(userId, user);
-            userListBody.appendChild(row);
-        });
+// Real-time Stats
+function loadStats() {
+    db.collection('users').onSnapshot(snapshot => {
+        const users = snapshot.docs.map(doc => doc.data());
+        document.getElementById('total-users').innerText = users.length;
+        document.getElementById('total-banned').innerText = users.filter(u => u.is_banned === true).length;
     });
 }
 
-function createUserRow(id, user) {
-    const tr = document.createElement('tr');
+// User List with Real-time Updates
+function loadUsers() {
+    db.collection('users').orderBy('created_at', 'desc').onSnapshot(snapshot => {
+        allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderUsers(allUsers);
+    }, error => {
+        userCardsContainer.innerHTML = `<div class="error-msg">Failed to load users: ${error.message}</div>`;
+    });
+}
+
+function renderUsers(users) {
+    userCardsContainer.innerHTML = '';
+    if (users.length === 0) {
+        userCardsContainer.innerHTML = '<div class="empty-state"><p>No users found.</p></div>';
+        return;
+    }
+
+    users.forEach(user => {
+        const card = createUserCard(user);
+        userCardsContainer.appendChild(card);
+    });
+}
+
+function createUserCard(user) {
+    const div = document.createElement('div');
+    div.className = 'user-card';
     const isBanned = user.is_banned === true;
-    
-    // Procedural Logo Mock for Web
+
+    // Procedural Colors matching the App
     const colors = ['#f44336', '#2196f3', '#4caf50', '#9c27b0', '#ff9800', '#009688', '#3f51b5', '#e91e63', '#ffeb3b', '#00bcd4'];
     const logoColor = colors[(user.logo_index || 0) % colors.length];
 
-    tr.innerHTML = `
-        <td><div class="user-logo" style="background: ${logoColor}20; border: 2px solid ${logoColor}"><i class="fas fa-face-smile" style="color: ${logoColor}"></i></div></td>
-        <td>
-            <div class="user-meta">
-                <p>${user.name || 'Unknown'}</p>
-                <p>${user.email || 'No Email'}</p>
+    div.innerHTML = `
+        <div class="card-header">
+            <div class="m-user-logo" style="background: ${logoColor}20; border: 2px solid ${logoColor}">
+                <i class="fas fa-user-graduate" style="color: ${logoColor}"></i>
             </div>
-        </td>
-        <td><code>${user.uid_number || 'N/A'}</code></td>
-        <td>Lvl ${user.level || 0} (${user.exp || 0} EXP)</td>
-        <td><span class="status-badge ${isBanned ? 'status-banned' : 'status-active'}">${isBanned ? 'Banned' : 'Active'}</span></td>
-        <td>
-            <button class="action-btn ${isBanned ? 'unban-btn' : 'ban-btn'}" onclick="toggleBan('${id}', ${isBanned})">
-                ${isBanned ? 'Unban User' : 'Ban User'}
+            <div class="m-user-info">
+                <h4>${user.name || 'Student User'}</h4>
+                <p>${user.email || 'Email Protected'}</p>
+            </div>
+        </div>
+        <div class="card-stats">
+            <div class="c-stat">
+                <label>UID</label>
+                <span>${user.uid_number || 'N/A'}</span>
+            </div>
+            <div class="c-stat">
+                <label>Level</label>
+                <span>${user.level || 0}</span>
+            </div>
+            <div class="c-stat">
+                <label>EXP</label>
+                <span>${user.exp || 0}</span>
+            </div>
+        </div>
+        <div class="card-actions">
+            <button class="m-btn ${isBanned ? 'm-unban-btn' : 'm-ban-btn'}" onclick="toggleBan('${user.id}', ${isBanned})">
+                ${isBanned ? '<i class="fas fa-user-check"></i> Unban' : '<i class="fas fa-user-slash"></i> Ban User'}
             </button>
-        </td>
+        </div>
     `;
-    return tr;
+    return div;
 }
 
-// Ban/Unban Logic
+// Search Logic
+userSearchInput.oninput = (e) => {
+    const query = e.target.value.toLowerCase();
+    const filtered = allUsers.filter(u =>
+        (u.name && u.name.toLowerCase().includes(query)) ||
+        (u.uid_number && u.uid_number.includes(query)) ||
+        (u.email && u.email.toLowerCase().includes(query))
+    );
+    renderUsers(filtered);
+};
+
+// Toggle Ban Status
 window.toggleBan = async (id, currentStatus) => {
-    const confirmMsg = currentStatus ? "Unban this user?" : "Ban this user? They will lose access to the app.";
-    if (confirm(confirmMsg)) {
-        await db.collection('users').doc(id).update({
-            is_banned: !currentStatus
-        });
-        loadStats();
+    const action = currentStatus ? "unban" : "ban";
+    if (confirm(`Are you sure you want to ${action} this user?`)) {
+        try {
+            await db.collection('users').doc(id).update({
+                is_banned: !currentStatus
+            });
+        } catch (e) {
+            alert("Error updating status: " + e.message);
+        }
     }
 };
 
-// Tab Navigation
-sideLinks.forEach(link => {
-    link.onclick = () => {
-        const target = link.getAttribute('data-tab');
-        
-        sideLinks.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-        
-        tabContents.forEach(content => {
-            content.classList.add('hidden');
-            if (content.id === target + '-tab') {
-                content.classList.remove('hidden');
+// Bottom Nav Navigation
+bottomNavItems.forEach(item => {
+    item.onclick = () => {
+        const target = item.getAttribute('data-tab');
+
+        // Update UI
+        bottomNavItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
+        // Switch Tabs
+        tabContents.forEach(tab => {
+            tab.classList.add('hidden');
+            if (tab.id === target + '-tab') {
+                tab.classList.remove('hidden');
             }
         });
-        
-        tabTitle.innerText = link.querySelector('span').innerText;
+
+        // Set Title
+        tabTitle.innerText = item.querySelector('span').innerText;
     };
 });
