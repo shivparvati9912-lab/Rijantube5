@@ -13,7 +13,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const ALLOWED_EMAIL = "rijanjoshi66@gmail.com";
+const ALLOWED_ADMINS = ["rijanjoshi66@gmail.com", "shivparvati9912@gmail.com"];
 
 // DOM Elements
 const loginOverlay = document.getElementById('login-overlay');
@@ -32,7 +32,7 @@ let allUsers = [];
 // Auth State Monitor
 auth.onAuthStateChanged(user => {
     if (user) {
-        if (user.email === ALLOWED_EMAIL) {
+        if (ALLOWED_ADMINS.includes(user.email)) {
             setupDashboard(user);
         } else {
             loginError.innerText = "Access Forbidden: Admin account required.";
@@ -93,8 +93,8 @@ targetType.onchange = () => {
 function loadStats() {
     db.collection('users').onSnapshot(snapshot => {
         const users = snapshot.docs.map(doc => doc.data());
-        // Filter out admin from stats
-        const activeUsers = users.filter(u => u.email !== ALLOWED_EMAIL);
+        // Filter out admins from stats
+        const activeUsers = users.filter(u => !ALLOWED_ADMINS.includes(u.email));
 
         document.getElementById('total-users').innerText = activeUsers.length;
         document.getElementById('total-banned').innerText = activeUsers.filter(u => u.is_banned === true).length;
@@ -113,8 +113,8 @@ function loadUsers() {
 
 function renderUsers(users) {
     userCardsContainer.innerHTML = '';
-    // Filter out the admin email as requested
-    const filteredUsers = users.filter(u => u.email !== ALLOWED_EMAIL);
+    // Filter out all admin emails
+    const filteredUsers = users.filter(u => !ALLOWED_ADMINS.includes(u.email));
 
     // Populate Targeting Dropdown
     targetUserSelect.innerHTML = '';
@@ -206,9 +206,9 @@ userSearchInput.oninput = (e) => {
 
 // Toggle Ban Status
 window.toggleBan = async (id, currentStatus, email) => {
-    // Security check: Admin cannot be banned
-    if (email === ALLOWED_EMAIL && !currentStatus) {
-        alert("Security Alert: The administrator account cannot be banned.");
+    // Security check: Admins cannot be banned
+    if (ALLOWED_ADMINS.includes(email) && !currentStatus) {
+        alert("Security Alert: Administrator accounts cannot be banned.");
         return;
     }
 
@@ -256,6 +256,11 @@ sendPatchBtn.onclick = async () => {
     const targetTypeVal = targetType.value;
     const targetUid = targetTypeVal === 'all' ? 'all' : targetUserSelect.value;
     const statusDiv = document.getElementById('patch-status');
+
+    if (targetTypeVal === 'specific' && !targetUid) {
+        statusDiv.innerText = "Error: Please select a specific user or wait for users to load.";
+        return;
+    }
 
     if (!message) {
         statusDiv.innerText = "Error: Message cannot be empty.";
