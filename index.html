@@ -105,6 +105,22 @@
 
                     <div class="stats-grid-mobile">
                         <div class="form-group">
+                            <label>Target Audience</label>
+                            <select id="patch-target-type">
+                                <option value="all">All Users</option>
+                                <option value="specific">Specific User</option>
+                            </select>
+                        </div>
+                        <div id="target-user-group" class="form-group" style="display: none;">
+                            <label>Select User</label>
+                            <select id="patch-target-user">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid-mobile">
+                        <div class="form-group">
                             <label>Tag / Type</label>
                             <select id="patch-tag">
                                 <option value="optional">Optional (Toast)</option>
@@ -129,6 +145,13 @@
                         <i class="fas fa-paper-plane"></i> Send Patch Now
                     </button>
                     <div id="patch-status" class="error-msg" style="text-align: center;"></div>
+
+                    <div class="history-section" style="margin-top: 30px;">
+                        <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--text-dim);">Patch History</h3>
+                        <div id="patch-history-container" class="cards-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
                 </div>
             </section>
 
