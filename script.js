@@ -77,7 +77,17 @@ function setupDashboard(user) {
 
     loadStats();
     loadUsers();
+    loadPatchHistory();
 }
+
+// Targeting Logic
+const targetType = document.getElementById('patch-target-type');
+const targetUserGroup = document.getElementById('target-user-group');
+const targetUserSelect = document.getElementById('patch-target-user');
+
+targetType.onchange = () => {
+    targetUserGroup.style.display = targetType.value === 'specific' ? 'flex' : 'none';
+};
 
 // Real-time Stats
 function loadStats() {
@@ -105,6 +115,15 @@ function renderUsers(users) {
     userCardsContainer.innerHTML = '';
     // Filter out the admin email as requested
     const filteredUsers = users.filter(u => u.email !== ALLOWED_EMAIL);
+
+    // Populate Targeting Dropdown
+    targetUserSelect.innerHTML = '';
+    filteredUsers.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id; // Using Firestore Doc ID as UID
+        opt.innerText = `${u.name || 'User'} (${u.email || 'No Email'})`;
+        targetUserSelect.appendChild(opt);
+    });
 
     if (filteredUsers.length === 0) {
         userCardsContainer.innerHTML = '<div class="empty-state"><p>No users found.</p></div>';
@@ -234,6 +253,8 @@ sendPatchBtn.onclick = async () => {
     const tag = document.getElementById('patch-tag').value;
     const durationType = patchDurationType.value;
     const hours = parseInt(document.getElementById('patch-hours').value);
+    const targetTypeVal = targetType.value;
+    const targetUid = targetTypeVal === 'all' ? 'all' : targetUserSelect.value;
     const statusDiv = document.getElementById('patch-status');
 
     if (!message) {
@@ -253,10 +274,12 @@ sendPatchBtn.onclick = async () => {
 
         await db.collection('patches').add({
             message: message,
-            tag: tag, // 'optional' (toast) or 'required' (blocking)
+            tag: tag, // 'optional' or 'required'
+            targetUid: targetUid,
             expiry: expiry,
             createdAt: now,
-            active: true
+            active: true,
+            hiddenWeb: false
         });
 
         statusDiv.style.color = 'var(--success)';
@@ -272,6 +295,69 @@ sendPatchBtn.onclick = async () => {
     } finally {
         sendPatchBtn.disabled = false;
         sendPatchBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Patch Now';
+    }
+};
+
+// Patch History and Revocation
+function loadPatchHistory() {
+    const historyContainer = document.getElementById('patch-history-container');
+    db.collection('patches')
+        .where('hiddenWeb', '==', false)
+        .orderBy('createdAt', 'desc')
+        .limit(10)
+        .onSnapshot(snapshot => {
+            historyContainer.innerHTML = '';
+            if (snapshot.empty) {
+                historyContainer.innerHTML = '<div class="empty-state" style="margin-top: 10px;"><p>No history found.</p></div>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const patch = doc.data();
+                const card = createHistoryCard(doc.id, patch);
+                historyContainer.appendChild(card);
+            });
+        });
+}
+
+function createHistoryCard(id, patch) {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    const date = patch.createdAt ? patch.createdAt.toDate().toLocaleString() : 'Just now';
+    const isRevoked = patch.active === false;
+
+    div.innerHTML = `
+        <div class="history-header">
+            <span class="status-badge status-${patch.tag}">${patch.tag}</span>
+            <span style="font-size: 0.7rem; color: var(--text-dim);">${date}</span>
+        </div>
+        <p class="history-msg">${patch.message}</p>
+        <div class="history-meta">
+            <span class="meta-badge"><i class="fas fa-bullseye"></i> Target: ${patch.targetUid}</span>
+            ${isRevoked ? '<span class="meta-badge" style="color: var(--danger); border: 1px solid var(--danger);">REVOKED</span>' : ''}
+        </div>
+        <div class="history-actions">
+            <button class="h-del-btn h-del-web" onclick="deletePatch('${id}', false)">
+                <i class="fas fa-eye-slash"></i> Hide Web
+            </button>
+            <button class="h-del-btn h-del-both" onclick="deletePatch('${id}', true)">
+                <i class="fas fa-trash-alt"></i> Delete Both
+            </button>
+        </div>
+    `;
+    return div;
+}
+
+window.deletePatch = async (id, both) => {
+    const confirmMsg = both ? "Delete for BOTH Website and App? (Revoke notification)" : "Delete for Website History only?";
+    if (confirm(confirmMsg)) {
+        try {
+            const updates = { hiddenWeb: true };
+            if (both) updates.active = false;
+            await db.collection('patches').doc(id).update(updates);
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
     }
 };
 
