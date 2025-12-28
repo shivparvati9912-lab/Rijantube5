@@ -18,15 +18,22 @@ const db = firebase.firestore();
 const ALLOWED_ADMINS = ["rijanjoshi66@gmail.com", "shivparvati9912@gmail.com"];
 
 const USER_TAGS = [
-    "Student", "Blue Tick", "Golden Tick", "Admin", "Moderator", "VIP", "Golden VIP",
-    "Legend", "Mythical", "Original", "Tester", "Developer", "Support", "Helper",
-    "Artist", "Creator", "Streamer", "YouTuber", "Pro Player", "Elite", "Master",
-    "Grandmaster", "Champion", "Hero", "Guardian", "Sentinel", "Scout", "Veteran",
-    "Rookie", "Nova", "Supernova", "Galaxy", "Universal", "Divine", "Immortal",
-    "Eternal", "Zenith", "Apex", "Prime", "Alpha", "Beta", "Gamma", "Delta",
-    "Sigma", "Omega", "Shadow", "Light", "Dark", "Solar", "Lunar", "Astral",
-    "Cosmic", "Mystic", "Ancient", "Relic", "Artifact", "Gem", "Diamond",
-    "Platinum", "Gold", "Silver", "Bronze"
+    { id: 'Student', icon: 'fa-user-graduate', style: 'default' },
+    { id: 'Blue Tick', icon: 'fa-check-circle', style: 'blue-tick' },
+    { id: 'Golden Tick', icon: 'fa-check-circle', style: 'gold-tick' },
+    { id: 'Admin', icon: 'fa-user-shield', style: 'shiny-purple' },
+    { id: 'Moderator', icon: 'fa-shield-halved', style: 'shiny-blue' },
+    { id: 'VIP', icon: 'fa-crown', style: 'animated-pink' },
+    { id: 'Golden VIP', icon: 'fa-crown', style: 'animated-gold' },
+    { id: 'Legend', icon: 'fa-star', style: 'shiny-gold' },
+    { id: 'Mythical', icon: 'fa-fire', style: 'animated-red' },
+    { id: 'Developer', icon: 'fa-code', style: 'shiny-blue' },
+    { id: 'Original', icon: 'fa-certificate', style: 'default' },
+    { id: 'YouTuber', icon: 'fa-play-circle', style: 'animated-red' },
+    { id: 'Elite', icon: 'fa-gem', style: 'shiny-blue' },
+    { id: 'Champion', icon: 'fa-trophy', style: 'shiny-gold' },
+    { id: 'Divine', icon: 'fa-bolt', style: 'animated-cyan' },
+    { id: 'Immortal', icon: 'fa-sun', style: 'shiny-orange' }
 ];
 
 // DOM Elements (Safe selection)
@@ -188,8 +195,15 @@ function loadUsers() {
 
 function renderUsers(users) {
     if (userCardsContainer) userCardsContainer.innerHTML = '';
-    // Filter out all admin emails
-    const filteredUsers = users.filter(u => !ALLOWED_ADMINS.includes(u.email));
+    // Sorting: Level (High to Low), then EXP (High to Low)
+    const filteredUsers = users
+        .filter(u => !ALLOWED_ADMINS.includes(u.email))
+        .sort((a, b) => {
+            if ((b.level || 0) !== (a.level || 0)) {
+                return (b.level || 0) - (a.level || 0);
+            }
+            return (b.exp || 0) - (a.exp || 0);
+        });
 
     // Populate Targeting Dropdown
     if (targetUserSelect) {
@@ -232,10 +246,13 @@ function createUserCard(user) {
                 <div class="m-user-info">
                     <h4>${user.name || 'Student User'}</h4>
                     <p>${user.email || 'Email Protected'}</p>
-                    <div style="display: flex; gap: 8px; align-items: center; margin-top: 5px;">
-                        <div class="tag-badge-small" style="background: ${getTagColor(user.tag)}">
-                            ${user.tag || 'Student'}
-                        </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 5px;">
+                        ${(user.tags || (user.tag ? [user.tag] : ['Student'])).map(t => {
+        const tagObj = USER_TAGS.find(tag => tag.id === t) || { id: t, icon: 'fa-tag', style: 'default' };
+        return `<div class="tag-badge-small ${tagObj.style}">
+                                <i class="fas ${tagObj.icon}"></i> ${tagObj.id}
+                            </div>`;
+    }).join('')}
                         <span class="status-indicator ${user.is_online ? 'online' : ''}" style="font-size: 0.65rem;">
                             ${user.is_online ? 'Online' : 'Offline'}
                         </span>
@@ -344,9 +361,12 @@ window.openEditModal = (userId) => {
 
     USER_TAGS.forEach(tag => {
         const div = document.createElement('div');
-        div.className = `tag-option ${activeTags.includes(tag) ? 'selected' : ''}`;
-        div.innerText = tag;
-        div.onclick = () => div.classList.toggle('selected');
+        div.className = `tag-option ${tag.style} ${activeTags.includes(tag.id) ? 'selected' : ''}`;
+        div.innerHTML = `<i class="fas ${tag.icon}"></i> <span>${tag.id}</span>`;
+        div.onclick = () => {
+            const isSelected = div.classList.toggle('selected');
+            // Logic to handle max 5 tags can be added here if needed
+        };
         container.appendChild(div);
     });
 

@@ -42,6 +42,109 @@
     }
 }
 
+/* Tag Badge Adjustments */
+.tag-badge-small {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Rich Tag Effects */
+.blue-tick {
+    background: #2196f320;
+    color: #2196f3;
+    border-color: #2196f340;
+}
+
+.gold-tick {
+    background: #ffd70020;
+    color: #ffd700;
+    border-color: #ffd70040;
+}
+
+.shiny-gold {
+    background: linear-gradient(90deg, #ffd700, #fff, #ffd700);
+    background-size: 200% auto;
+    color: #000;
+    animation: shine 3s linear infinite;
+}
+
+.shiny-purple {
+    background: #a855f720;
+    color: #a855f7;
+    border-color: #a855f740;
+}
+
+.shiny-blue {
+    background: #6366f120;
+    color: #6366f1;
+    border-color: #6366f140;
+}
+
+.animated-pink {
+    background: #ec489920;
+    color: #ec4899;
+    border-color: #ec489940;
+    animation: pulse 2s infinite;
+}
+
+.animated-gold {
+    background: #fbbf2420;
+    color: #fbbf24;
+    border-color: #fbbf2440;
+    animation: pulse 2s infinite;
+}
+
+.animated-red {
+    background: #ef444420;
+    color: #ef4444;
+    border-color: #ef444440;
+    animation: pulse 2s infinite;
+}
+
+.animated-cyan {
+    background: #06b6d420;
+    color: #06b6d4;
+    border-color: #06b6d440;
+    animation: pulse 2s infinite;
+}
+
+.shiny-orange {
+    background: #f9731620;
+    color: #f97316;
+    border-color: #f9731640;
+}
+
+@keyframes shine {
+    to {
+        background-position: 200% center;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 @keyframes fadeInScale {
     from {
         opacity: 0;
@@ -888,96 +991,163 @@ body::before {
     background: var(--success);
 }
 
-/* Modal Styles */
+/* Dark Glassmorphism Modal Overhaul */
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(15px);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    z-index: 3000;
 }
 
 .modal-content {
-    background: white;
-    width: 90%;
-    max-width: 500px;
+    background: var(--bg-surface);
+    width: 95%;
+    max-width: 520px;
     max-height: 85vh;
-    border-radius: 24px;
+    border-radius: 32px;
+    border: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5);
+    animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    color: var(--text-white);
 }
 
 .modal-header {
-    padding: 20px 25px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #eee;
+    padding: 25px 30px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--glass-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+.modal-header h3 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 .modal-body {
-    padding: 25px;
+    padding: 30px;
     overflow-y: auto;
     flex: 1;
 }
 
-.modal-footer {
-    padding: 20px 25px;
-    background: #f8f9fa;
-    border-top: 1px solid #eee;
-    display: flex;
-    gap: 12px;
+.modal-body label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.modal-body input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 15px;
+    color: white;
+    font-size: 1rem;
+    margin-bottom: 25px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.modal-body input:focus {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .tags-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
-    margin-top: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 12px;
+    margin-top: 5px;
 }
 
 .tag-option {
-    padding: 8px 12px;
-    background: #eee;
-    border-radius: 8px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 14px;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     text-align: center;
-    transition: 0.2s;
-    border: 2px solid transparent;
+    transition: all 0.2s;
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.tag-option i {
+    font-size: 1.2rem;
 }
 
 .tag-option:hover {
-    background: #e0e0e0;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
 }
 
 .tag-option.selected {
     background: var(--primary);
     color: white;
-    border-color: var(--primary-dark);
+    border-color: var(--primary);
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.modal-footer {
+    padding: 25px 30px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    gap: 15px;
+}
+
+.modal-footer .m-btn {
+    flex: 1;
+    padding: 15px;
+    border-radius: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    border: none;
+    transition: 0.3s;
 }
 
 .cancel-btn {
-    background: #eee;
-    color: #333;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-dim);
 }
 
 .save-btn {
-    background: var(--primary);
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
     color: white;
 }
 
 .close-btn {
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: 2rem;
+    color: var(--text-dim);
     cursor: pointer;
-    color: #999;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: white;
 }
