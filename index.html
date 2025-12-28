@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rijantube Admin Mobile</title>
+    <title>Admin Dashboard - Rijantube Ultra</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -13,12 +13,16 @@
 <body>
     <!-- Login Overlay -->
     <div id="login-overlay" class="overlay">
-        <div class="login-card">
+        <div class="login-box glass-card">
+            <div class="glow-effect"></div>
             <img src="app.png" alt="Rijantube Logo" class="login-logo">
-            <h1>Admin Panel</h1>
-            <p>Authorized access only</p>
+            <h1
+                style="font-size: 2.5rem; background: linear-gradient(to bottom, #fff, #94a3b8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                Admin Dashboard</h1>
+            <p style="color: var(--text-dim); margin-bottom: 2.5rem; letter-spacing: 1px;">ULTRA LEVEL ACCESS</p>
             <button id="google-login-btn" class="google-btn">
-                <i class="fab fa-google"></i> Sign in with Google
+                <i class="fab fa-google" style="color: #4285F4;"></i>
+                <span>Sign in with Google</span>
             </button>
             <div id="login-error" class="error-msg"></div>
         </div>
@@ -61,8 +65,36 @@
                 </div>
 
                 <div class="hero-card">
-                    <h3>App Management</h3>
+                    <h3>System Overview</h3>
                     <p>Live monitoring of Rijantube ecosystem.</p>
+                </div>
+
+                <div class="notice-section glass-card"
+                    style="margin-top: 2rem; padding: 2rem; border-radius: 2rem; background: var(--bg-surface); border: 1px solid var(--glass-border);">
+                    <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-bullhorn" style="color: var(--accent);"></i>
+                        Global Notice (Send to All)
+                    </h3>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Notice Title</label>
+                        <input type="text" id="notice-title" placeholder="e.g. Server Maintenance"
+                            style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; width: 100%;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Message Content</label>
+                        <textarea id="notice-message" placeholder="Type your message here..." rows="3"
+                            style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; width: 100%; resize: vertical;"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label>Display Duration (Seconds)</label>
+                        <input type="number" id="notice-duration" value="5" min="1" max="60"
+                            style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; width: 100%;">
+                    </div>
+                    <button id="send-notice-btn" class="p-send-btn"
+                        style="width: 100%; border-radius: 1rem; padding: 1rem; font-weight: 800; background: linear-gradient(45deg, var(--primary), var(--secondary)); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s;">
+                        <i class="fas fa-paper-plane"></i> Broadcast Notice Now
+                    </button>
+                    <div id="notice-status" style="margin-top: 1rem; text-align: center; font-size: 0.9rem;"></div>
                 </div>
             </section>
         </main>

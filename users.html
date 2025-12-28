@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Users - Rijantube Admin</title>
+    <title>Users - Rijantube Ultra</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -23,9 +23,11 @@
         </header>
 
         <main class="mobile-content">
-            <div class="search-container">
-                <i class="fas fa-search"></i>
-                <input type="text" id="user-search" placeholder="Search by name or UID...">
+            <div class="search-container glass-card"
+                style="background: var(--bg-surface); padding: 12px 20px; border-radius: 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 15px; border: 1px solid var(--glass-border);">
+                <i class="fas fa-search" style="color: var(--primary);"></i>
+                <input type="text" id="user-search" placeholder="Search by name or UID..."
+                    style="background: transparent; border: none; color: white; width: 100%; outline: none; font-size: 1rem;">
             </div>
             <div id="user-cards-container" class="cards-list">
                 <div class="loading-spinner">
@@ -69,6 +71,36 @@
                 <span>Support</span>
             </a>
         </nav>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="edit-user-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit User Profile</h3>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="edit-name" placeholder="Enter name">
+                </div>
+                <div class="form-group">
+                    <label>Level (Max 1000)</label>
+                    <input type="number" id="edit-level" min="0" max="1000">
+                </div>
+                <div class="form-group">
+                    <label>Select Tags (Max 5)</label>
+                    <div id="tags-selector" class="tags-grid">
+                        <!-- Tags will be injected by JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="m-btn cancel-btn" onclick="closeEditModal()">Cancel</button>
+                <button class="m-btn save-btn" onclick="saveUserChanges()">Save Changes</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>

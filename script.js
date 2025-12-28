@@ -17,6 +17,18 @@ const db = firebase.firestore();
 
 const ALLOWED_ADMINS = ["rijanjoshi66@gmail.com", "shivparvati9912@gmail.com"];
 
+const USER_TAGS = [
+    "Student", "Blue Tick", "Golden Tick", "Admin", "Moderator", "VIP", "Golden VIP",
+    "Legend", "Mythical", "Original", "Tester", "Developer", "Support", "Helper",
+    "Artist", "Creator", "Streamer", "YouTuber", "Pro Player", "Elite", "Master",
+    "Grandmaster", "Champion", "Hero", "Guardian", "Sentinel", "Scout", "Veteran",
+    "Rookie", "Nova", "Supernova", "Galaxy", "Universal", "Divine", "Immortal",
+    "Eternal", "Zenith", "Apex", "Prime", "Alpha", "Beta", "Gamma", "Delta",
+    "Sigma", "Omega", "Shadow", "Light", "Dark", "Solar", "Lunar", "Astral",
+    "Cosmic", "Mystic", "Ancient", "Relic", "Artifact", "Gem", "Diamond",
+    "Platinum", "Gold", "Silver", "Bronze"
+];
+
 // DOM Elements (Safe selection)
 const safeGet = (id) => document.getElementById(id);
 const loginOverlay = safeGet('login-overlay');
@@ -32,6 +44,8 @@ const targetUserSelect = safeGet('patch-target-user');
 const patchDurationType = safeGet('patch-duration-type');
 const durationInputGroup = safeGet('duration-input-group');
 const sendPatchBtn = safeGet('send-patch-btn');
+const sendNoticeBtn = safeGet('send-notice-btn');
+const noticeStatus = safeGet('notice-status');
 
 let allUsers = [];
 
@@ -247,7 +261,10 @@ function createUserCard(user) {
                 <i class="fas ${isBanned ? 'fa-user-check' : 'fa-user-slash'}"></i> ${isBanned ? 'Unban' : 'Ban'}
             </button>
             <button class="m-btn tag-btn" onclick="manageTag('${user.id}', '${user.tag || 'Student'}')">
-                <i class="fas fa-tags"></i> Tag
+                <i class="fas fa-tags"></i> Tag (Cycle)
+            </button>
+            <button class="m-btn edit-btn" style="background: var(--primary)20; border-color: var(--primary)40; color: var(--primary);" onclick="openEditModal('${user.id}')">
+                <i class="fas fa-pencil-alt"></i> Edit
             </button>
         </div>
     `;
@@ -308,6 +325,72 @@ window.manageTag = async (id, currentTag) => {
         alert("Error updating tag: " + e.message);
     }
 }
+
+// Full Edit System
+let currentEditUserId = null;
+
+window.openEditModal = (userId) => {
+    currentEditUserId = userId;
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) return;
+
+    safeGet('edit-name').value = user.name || '';
+    safeGet('edit-level').value = user.level || 0;
+
+    // Setup Tags Selector
+    const container = safeGet('tags-selector');
+    container.innerHTML = '';
+    const activeTags = user.tags || (user.tag ? [user.tag] : []);
+
+    USER_TAGS.forEach(tag => {
+        const div = document.createElement('div');
+        div.className = `tag-option ${activeTags.includes(tag) ? 'selected' : ''}`;
+        div.innerText = tag;
+        div.onclick = () => div.classList.toggle('selected');
+        container.appendChild(div);
+    });
+
+    safeGet('edit-user-modal').classList.remove('hidden');
+};
+
+window.closeEditModal = () => {
+    safeGet('edit-user-modal').classList.add('hidden');
+    currentEditUserId = null;
+};
+
+window.saveUserChanges = async () => {
+    if (!currentEditUserId) return;
+
+    const newName = safeGet('edit-name').value.trim();
+    const newLevel = parseInt(safeGet('edit-level').value);
+    const selectedTags = Array.from(document.querySelectorAll('.tag-option.selected')).map(el => el.innerText);
+
+    if (newLevel > 1000) {
+        alert("Max level is 1000");
+        return;
+    }
+
+    try {
+        await db.collection('users').doc(currentEditUserId).update({
+            name: newName,
+            level: newLevel,
+            tags: selectedTags,
+            tag: selectedTags[0] || 'Student' // For backward compatibility
+        });
+
+        // Add a log entry
+        await db.collection('logs').add({
+            action: `Modified user ${currentEditUserId}`,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            admin: auth.currentUser.email
+        });
+
+        closeEditModal();
+        alert("User updated successfully!");
+    } catch (e) {
+        alert("Save failed: " + e.message);
+    }
+};
 
 // Patch System Logic
 if (patchDurationType) {
@@ -375,6 +458,61 @@ if (sendPatchBtn) {
             sendPatchBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Patch Now';
         }
     };
+}
+
+// Global Notice System
+if (sendNoticeBtn) {
+    sendNoticeBtn.onclick = async () => {
+        const title = safeGet('notice-title').value.trim();
+        const message = safeGet('notice-message').value.trim();
+        const duration = parseInt(safeGet('notice-duration').value) || 5;
+
+        if (!title || !message) {
+            showAdminToast("Title and Message are required!", "danger");
+            return;
+        }
+
+        sendNoticeBtn.disabled = true;
+        sendNoticeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Broadcasting...';
+
+        try {
+            await db.collection('notices').doc('latest').set({
+                title: title,
+                message: message,
+                duration: duration,
+                created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                sender: auth.currentUser.email
+            });
+
+            showAdminToast("Global Notice Broadcasted!", "success");
+            safeGet('notice-title').value = '';
+            safeGet('notice-message').value = '';
+        } catch (e) {
+            showAdminToast("Broadcast failed: " + e.message, "danger");
+        } finally {
+            sendNoticeBtn.disabled = false;
+            sendNoticeBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Broadcast Notice Now';
+        }
+    };
+}
+
+function showAdminToast(msg, type) {
+    const toast = document.createElement('div');
+    toast.style.position = 'fixed';
+    toast.style.bottom = '100px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = type === 'success' ? 'var(--success)' : 'var(--danger)';
+    toast.style.color = 'white';
+    toast.style.padding = '12px 24px';
+    toast.style.borderRadius = '12px';
+    toast.style.zIndex = '3000';
+    toast.style.boxShadow = '0 10px 20px rgba(0,0,0,0.3)';
+    toast.style.fontWeight = 'bold';
+    toast.style.animation = 'fadeInScale 0.3s ease-out';
+    toast.innerText = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
 }
 
 // Patch History and Revocation
@@ -682,11 +820,30 @@ function loadAdvancedSupportRequests() {
                     <button onclick="location.href='support.html'" style="color: var(--primary); border: 1px solid var(--primary); background: none; border-radius: 5px; cursor: pointer; padding: 5px 10px;">
                         <i class="fas fa-comments"></i> Chat
                     </button>
+                    <button onclick="deleteSupportRequest(event, '${doc.id}')" style="color: var(--danger); border: 1px solid var(--danger); background: none; border-radius: 5px; cursor: pointer; padding: 5px 10px;" title="Delete Permanently">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                 </div>
             `;
             list.appendChild(card);
         });
     });
+}
+
+async function deleteSupportRequest(e, id) {
+    e.stopPropagation();
+    if (confirm("Permanently delete this request from Firebase? (This will also remove it from the User's view in the App)")) {
+        try {
+            await db.collection('support_requests').doc(id).delete();
+            // Also cleanup chats associated with this request
+            const chatSnap = await db.collection('chats').where('requestId', '==', id).get();
+            const batch = db.batch();
+            chatSnap.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+        } catch (err) {
+            alert("Error: " + err.message);
+        }
+    }
 }
 
 // Remove old SPA nav logic as we are using multi-page links now.
