@@ -1,12 +1,16 @@
 :root {
     --primary: #6366f1;
     --primary-glow: rgba(99, 102, 241, 0.5);
+    --primary-dark: #4f46e5;
     --secondary: #a855f7;
     --accent: #ec4899;
     --bg-deep: #020617;
+    --bg-dark: #0f172a;
     --bg-surface: rgba(15, 23, 42, 0.8);
+    --card-bg: rgba(30, 41, 59, 0.5);
     --glass-border: rgba(255, 255, 255, 0.1);
     --text-white: #f8fafc;
+    --text-main: #f1f5f9;
     --text-dim: #94a3b8;
     --danger: #ef4444;
     --success: #10b981;
@@ -194,18 +198,12 @@ body::before {
 .overlay {
     position: fixed;
     inset: 0;
-    background: var(--bg-dark);
+    background: var(--bg-deep);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-}
-
-.login-card {
-    text-align: center;
-    padding: 2rem;
-    width: 100%;
-    max-width: 350px;
+    z-index: 5000;
+    padding: 20px;
 }
 
 .login-box {
@@ -214,13 +212,16 @@ body::before {
     border: 1px solid var(--glass-border);
     padding: 60px 40px;
     border-radius: 40px;
-    width: 90%;
+    width: 100%;
     max-width: 440px;
     text-align: center;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     animation: fadeInScale 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .glow-effect {
